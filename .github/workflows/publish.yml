@@ -21,20 +21,27 @@ jobs:
           ref: ${{ github.event.inputs.tag }}
           path: gifsicle
 
-      - run: cd gifsicle
-      - run: mkdir -p output
+      - working-directory: gifsicle
+        run: mkdir -p output
 
-      - run: ./bootstrap.sh
-      - run: |
+      - working-directory: gifsicle
+        run: ./bootstrap.sh
+
+      - working-directory: gifsicle
+        run: |
           ./configure \
             --disable-dependency-tracking \
             --prefix="${{ github.workspace }}/gifsicle/output" \
             --disable-gifview --disable-gifdiff
       
-      - run: make install
+      - working-directory: gifsicle
+        run: make install
 
-      - run: zip -r "gifsicle-${{ github.event.inputs.tag }}.zip" output
-      - run: mv "gifsicle-${{ github.event.inputs.tag }}.zip" "${{ github.workspace }}"
+      - working-directory: gifsicle
+        run: zip -r "gifsicle-${{ github.event.inputs.tag }}.zip" output
+      
+      - working-directory: gifsicle
+        run: mv "gifsicle-${{ github.event.inputs.tag }}.zip" "${{ github.workspace }}"
 
       - uses: ncipollo/release-action@v1
         with:
