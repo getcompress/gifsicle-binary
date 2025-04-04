@@ -1,0 +1,43 @@
+name: 'Build and publish Gifsicle binary'
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to clone'
+        required: true
+        type: string
+
+jobs:
+  build-release:
+    runs-on: macos-latest
+    permissions: { contents: write }
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: 'kohler/gifsicle'
+          ref: ${{ github.event.inputs.tag }}
+          path: gifsicle
+
+      - run: cd gifsicle
+      - run: mkdir -p output
+
+      - run: ./bootstrap.sh
+      - run: |
+          ./configure \
+            --disable-dependency-tracking \
+            --prefix="${{ github.workspace }}/gifsicle/output" \
+            --disable-gifview --disable-gifdiff
+      
+      - run: make install
+
+      - run: zip -r "gifsicle-${{ github.event.inputs.tag }}.zip" output
+      - run: mv "gifsicle-${{ github.event.inputs.tag }}.zip" "${{ github.workspace }}"
+
+      - uses: ncipollo/release-action@v1
+        with:
+          tag: gifsicle-${{ github.event.inputs.tag }}
+          name: gifsicle-${{ github.event.inputs.tag }}
+          artifacts: '*.zip'
